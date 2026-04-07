@@ -185,7 +185,7 @@ Drag and drop `stopwatch.html` into the Netlify dashboard — no configuration n
 ## 💡 Why This Project Matters
 
 Browser-based timers are a solved problem — until you need one that **survives a page refresh, requires no server, runs offline, and looks like it belongs on a watchmaker's bench**.
-
+   
 Most existing solutions fail because:
 - They reset on refresh — relying on in-memory state with no persistence layer
 - They depend on frameworks (React, Vue) that add hundreds of KB of overhead for a timer
