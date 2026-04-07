@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vintage Chronometer</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cinzel:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --gold: #c9a84c;
+  --gold-light: #e8c96a;
+  --gold-dark: #8a6a1e;
+  --silver: #c0bdb8;
+  --glow: rgba(201,168,76,0.4);
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  min-height: 100vh;
+  background: #0a0806;
+  background-image:
+    radial-gradient(ellipse at 30% 20%, rgba(40,30,10,0.8) 0%, transparent 60%),
+    radial-gradient(ellipse at 70% 80%, rgba(20,15,5,0.9) 0%, transparent 60%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  font-family: 'Cinzel', serif;
+  padding: 1.5rem 0 2.5rem;
+  overflow-x: hidden;
+}
+
+/* ── MODE TABS ─────────────────────────── */
+.mode-tabs {
+  display: flex; gap: 2px; margin-bottom: 1.6rem;
+  background: #111008; border: 1px solid #302818; border-radius: 4px; padding: 3px;
+}
+.tab-btn {
+  font-family: 'Cinzel', serif;
+  font-size: clamp(0.55rem, 1.4vw, 0.7rem);
+  letter-spacing: 0.2em; text-transform: uppercase;
+  padding: 0.5em 1.6em; border: none; border-radius: 3px;
+  cursor: pointer; background: transparent; color: #605848;
+  transition: background 0.2s, color 0.2s;
+}
+.tab-btn.active {
+  background: linear-gradient(180deg, #3a2e18 0%, #241c0c 100%);
+  color: var(--gold);
+  box-shadow: 0 1px 4px rgba(0,0,0,0.6), inset 0 1px 1px rgba(255,255,255,0.07);
+  text-shadow: 0 0 8px var(--glow);
+}
+
+/* ── WATCH BODY ────────────────────────── */
+.watch-body {
+  position: relative;
+  width: clamp(280px, 80vw, 420px);
+  height: clamp(280px, 80vw, 420px);
+}
+
+.crown-assembly {
+  position: absolute; top: -44px; left: 50%; transform: translateX(-50%);
+  display: flex; flex-direction: column; align-items: center; z-index: 10;
+}
+.crown-stem {
+  width: 14px; height: 22px;
+  background: linear-gradient(90deg, #6a6460 0%, #b0a898 30%, #8a8278 60%, #504840 100%);
+  border-radius: 3px 3px 0 0;
+  box-shadow: inset 0 1px 2px rgba(255,255,255,0.2), 0 2px 4px rgba(0,0,0,0.6);
+}
+.crown-knob {
+  width: 32px; height: 32px; border-radius: 50%;
+  background: radial-gradient(circle at 35% 30%, #e8e0d0 0%, #b8b0a0 30%, #888078 60%, #504840 100%);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.7), inset 0 1px 3px rgba(255,255,255,0.4), inset 0 -2px 4px rgba(0,0,0,0.4);
+  cursor: pointer; transition: transform 0.1s; position: relative; overflow: hidden;
+}
+.crown-knob::before {
+  content:''; position:absolute; inset:3px; border-radius:50%;
+  background: repeating-conic-gradient(#a09888 0deg,#c0b8a8 10deg,#a09888 10deg,#c0b8a8 20deg);
+  opacity:0.5;
+}
+.crown-knob:hover { transform: scale(1.08); }
+.crown-knob:active { transform: scale(0.95); }
+
+.side-btn {
+  position: absolute; width: 18px; height: 40px;
+  background: linear-gradient(180deg, #b0a898 0%, #888078 40%, #606050 70%, #404038 100%);
+  box-shadow: 0 3px 10px rgba(0,0,0,0.6), inset 0 1px 2px rgba(255,255,255,0.2);
+  cursor: pointer; transition: transform 0.1s;
+  top: 50%; transform: translateY(-50%); z-index: 10;
+}
+.side-btn:hover { filter: brightness(1.1); }
+.side-btn:active { transform: translateY(-50%) scaleX(0.9); }
+.side-btn-left  { left: -16px;  border-radius: 4px 0 0 4px; }
+.side-btn-right { right: -16px; border-radius: 0 4px 4px 0; }
+
+.outer-ring {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #6a6050 0deg,#c8b888 15deg,#e8d8a8 30deg,#c8b888 45deg,
+    #8a7858 60deg,#6a6050 75deg,#9a8868 90deg,#e0c890 105deg,
+    #c8b070 120deg,#988050 135deg,#7a6840 150deg,#b89860 165deg,
+    #e0c890 180deg,#b89860 195deg,#7a6840 210deg,#989068 225deg,
+    #c8b888 240deg,#e8d8a8 255deg,#c8b888 270deg,#8a7858 285deg,
+    #6a6050 300deg,#9a8868 315deg,#c8b888 330deg,#e8d0a0 345deg,
+    #6a6050 360deg);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.9), inset 0 2px 4px rgba(255,255,255,0.15), inset 0 -2px 8px rgba(0,0,0,0.5);
+}
+.bezel {
+  position: absolute; inset: 8px; border-radius: 50%;
+  background: conic-gradient(
+    from 0deg,
+    #888078 0deg,#d0c8b8 20deg,#f0e8d8 40deg,#d0c8b8 60deg,
+    #888078 80deg,#a09888 100deg,#d8d0c0 120deg,#f0e8d8 140deg,
+    #c0b8a8 160deg,#808070 180deg,#a09888 200deg,#d8d0c0 220deg,
+    #f0e8d8 240deg,#d0c8b8 260deg,#888078 280deg,#b0a898 300deg,
+    #d8d0c0 320deg,#f0e8d8 340deg,#888078 360deg);
+  box-shadow: inset 0 4px 12px rgba(0,0,0,0.6);
+}
+
+.watch-face {
+  position: absolute; inset: 20px; border-radius: 50%;
+  background: radial-gradient(circle at 40% 35%, #2e2820 0%, #1a1410 40%, #0d0b08 100%);
+  overflow: hidden;
+  box-shadow: inset 0 4px 20px rgba(0,0,0,0.9), inset 0 -2px 8px rgba(0,0,0,0.6);
+  transition: box-shadow 0.3s;
+}
+.watch-face.alarm-flash {
+  animation: alarmFlash 0.5s ease-in-out infinite alternate;
+}
+@keyframes alarmFlash {
+  from { box-shadow: inset 0 4px 20px rgba(0,0,0,0.9), inset 0 0 50px rgba(200,60,40,0.2); }
+  to   { box-shadow: inset 0 4px 20px rgba(0,0,0,0.9), inset 0 0 80px rgba(200,60,40,0.55); }
+}
+.watch-face::before {
+  content:''; position:absolute; inset:0; border-radius:50%;
+  background:
+    radial-gradient(ellipse at 30% 25%, rgba(255,255,255,0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 70% 75%, rgba(255,255,255,0.03) 0%, transparent 40%);
+  z-index:20; pointer-events:none;
+}
+
+.tick-canvas  { position:absolute; inset:0; width:100%; height:100%; }
+#countdownArc { position:absolute; inset:0; width:100%; height:100%; pointer-events:none; z-index:2; transition:opacity 0.3s; }
+
+.sub-dial {
+  position: absolute; width:28%; height:28%; top:62%; left:50%; transform:translateX(-50%);
+  border-radius:50%;
+  background: radial-gradient(circle at 40% 35%, #221e18 0%, #141210 100%);
+  border: 1px solid rgba(201,168,76,0.3);
+  box-shadow: inset 0 2px 8px rgba(0,0,0,0.8), 0 1px 3px rgba(201,168,76,0.2);
+  display:flex; align-items:center; justify-content:center; overflow:hidden;
+}
+.sub-dial::before {
+  content:''; position:absolute; inset:2px; border-radius:50%;
+  border:1px solid rgba(201,168,76,0.15);
+}
+.sub-seconds-hand {
+  position:absolute; bottom:50%; left:50%;
+  transform-origin:bottom center;
+  width:1px; height:36%;
+  background:linear-gradient(to top, var(--gold), var(--gold-light));
+  transform:translateX(-50%) rotate(0deg);
+  box-shadow:0 0 3px var(--glow);
+}
+.sub-dial-center {
+  position:absolute; width:5px; height:5px; border-radius:50%;
+  background:var(--gold); box-shadow:0 0 4px var(--glow); z-index:5;
+}
+
+.brand-text {
+  position:absolute; top:28%; left:50%; transform:translateX(-50%);
+  text-align:center; z-index:5; pointer-events:none;
+}
+.brand-name {
+  font-family:'Cinzel',serif; font-size:clamp(0.55rem,1.5vw,0.75rem);
+  color:var(--gold); letter-spacing:0.25em; text-shadow:0 0 8px var(--glow);
+  display:block; white-space:nowrap;
+}
+.brand-sub {
+  font-family:'Cinzel',serif; font-size:clamp(0.3rem,0.8vw,0.45rem);
+  color:var(--silver); letter-spacing:0.35em; opacity:0.6;
+  display:block; white-space:nowrap; margin-top:2px;
+}
+.mode-badge {
+  position:absolute; top:38%; left:50%; transform:translateX(-50%);
+  font-family:'Cinzel',serif; font-size:clamp(0.28rem,0.7vw,0.38rem);
+  color:#806848; letter-spacing:0.3em; text-transform:uppercase;
+  pointer-events:none; white-space:nowrap; z-index:5;
+}
+
+.time-display-wrap {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-52%);
+  text-align:center; z-index:10;
+}
+.time-display {
+  font-family:'Share Tech Mono',monospace;
+  font-size:clamp(1.4rem,4.5vw,2.2rem);
+  color:#f0e8d0;
+  text-shadow:0 0 10px rgba(201,168,76,0.6),0 0 20px rgba(201,168,76,0.3),0 1px 2px rgba(0,0,0,0.9);
+  letter-spacing:0.04em; line-height:1; white-space:nowrap;
+  transition:color 0.4s, text-shadow 0.4s;
+}
+.time-display.low {
+  color:#f08060;
+  text-shadow:0 0 10px rgba(220,80,60,0.7),0 0 24px rgba(220,80,60,0.4),0 1px 2px rgba(0,0,0,0.9);
+}
+.time-ms { font-size:0.55em; color:var(--gold); opacity:0.9; }
+
+.status-dot {
+  width:6px; height:6px; border-radius:50%; background:#444; margin:6px auto 0;
+  transition:background 0.3s, box-shadow 0.3s;
+}
+.status-dot.running { background:#c8f040; box-shadow:0 0 8px rgba(200,240,64,0.8); animation:pulse 1s ease-in-out infinite; }
+.status-dot.paused  { background:#f0a030; box-shadow:0 0 6px rgba(240,160,48,0.7); }
+.status-dot.alarm   { background:#f04030; box-shadow:0 0 10px rgba(240,64,48,0.9); animation:pulse 0.4s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1;transform:scale(1);}50%{opacity:0.5;transform:scale(0.7);} }
+
+.sweep-hand-wrap { position:absolute; inset:0; pointer-events:none; z-index:8; }
+.sweep-hand {
+  position:absolute; bottom:50%; left:50%; transform-origin:bottom center;
+  width:2px; height:42%;
+  background:linear-gradient(to top,transparent 0%,var(--gold) 30%,var(--gold-light) 100%);
+  transform:translateX(-50%) rotate(0deg);
+  filter:drop-shadow(0 0 3px var(--glow));
+}
+.sweep-hand::after {
+  content:''; position:absolute; bottom:-8px; left:50%; transform:translateX(-50%);
+  width:12px; height:12px; border-radius:50%;
+  background:var(--gold); box-shadow:0 0 6px var(--glow);
+}
+.center-cap {
+  position:absolute; top:50%; left:50%; transform:translate(-50%,-50%);
+  width:14px; height:14px; border-radius:50%;
+  background:radial-gradient(circle at 35% 35%,#e8d890 0%,#c09040 50%,#806020 100%);
+  box-shadow:0 0 6px rgba(0,0,0,0.8),0 0 4px var(--glow); z-index:15;
+}
+
+/* ── TIMER SET PANEL ──────────────────── */
+.timer-set-panel {
+  display:none; flex-direction:column; align-items:center; gap:0.6rem;
+  margin-top:1.2rem;
+}
+.timer-set-panel.visible { display:flex; }
+.timer-set-label {
+  font-family:'Cinzel',serif; font-size:clamp(0.5rem,1.3vw,0.65rem);
+  letter-spacing:0.35em; color:#806848; text-transform:uppercase;
+}
+.timer-inputs { display:flex; align-items:center; gap:4px; }
+.ti-field { display:flex; flex-direction:column; align-items:center; gap:2px; }
+.ti-label {
+  font-family:'Cinzel',serif; font-size:0.45rem;
+  letter-spacing:0.25em; color:#504030; text-transform:uppercase;
+}
+.ti-input {
+  width:52px; background:#110e08; border:1px solid #3a2e18; border-radius:3px;
+  color:var(--gold); font-family:'Share Tech Mono',monospace;
+  font-size:clamp(1rem,2.5vw,1.3rem);
+  text-align:center; padding:0.3em 0.2em; outline:none;
+  box-shadow:inset 0 2px 6px rgba(0,0,0,0.6);
+  -moz-appearance:textfield; transition:border-color 0.2s;
+}
+.ti-input::-webkit-inner-spin-button,
+.ti-input::-webkit-outer-spin-button { -webkit-appearance:none; }
+.ti-input:focus { border-color:var(--gold-dark); box-shadow:inset 0 2px 6px rgba(0,0,0,0.6),0 0 6px rgba(201,168,76,0.25); }
+.ti-sep {
+  font-family:'Share Tech Mono',monospace; font-size:1.4rem;
+  color:#503820; margin-bottom:10px; line-height:1;
+}
+.btn-set-timer {
+  font-family:'Cinzel',serif; font-size:clamp(0.5rem,1.3vw,0.62rem);
+  letter-spacing:0.2em; padding:0.55em 1.6em; text-transform:uppercase;
+  border:1px solid #50401c; border-radius:3px;
+  background:linear-gradient(180deg,#3a2e10 0%,#241c08 100%);
+  color:var(--gold); cursor:pointer;
+  box-shadow:0 2px 8px rgba(0,0,0,0.5),inset 0 1px 1px rgba(255,255,255,0.06);
+  transition:filter 0.15s,transform 0.1s;
+}
+.btn-set-timer:hover  { filter:brightness(1.2); }
+.btn-set-timer:active { transform:scale(0.95); }
+
+/* ── CONTROLS ─────────────────────────── */
+.controls {
+  display:flex; gap:clamp(0.4rem,1.5vw,0.9rem); margin-top:1.4rem;
+  flex-wrap:wrap; justify-content:center;
+}
+.btn {
+  font-family:'Cinzel',serif; font-size:clamp(0.52rem,1.4vw,0.68rem);
+  letter-spacing:0.15em; text-transform:uppercase; padding:0.6em 1.3em;
+  border:none; border-radius:3px; cursor:pointer; position:relative; overflow:hidden;
+  transition:transform 0.1s,filter 0.15s;
+}
+.btn::before {
+  content:''; position:absolute; inset:0;
+  background:linear-gradient(180deg,rgba(255,255,255,0.12) 0%,transparent 50%);
+  pointer-events:none;
+}
+.btn:active { transform:scale(0.95); }
+.btn-start {
+  background:linear-gradient(180deg,#3a6a2a 0%,#2a4a1e 50%,#1e3414 100%);
+  color:#a0e080; border:1px solid #4a7a30;
+  box-shadow:0 3px 10px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.1);
+  text-shadow:0 0 8px rgba(160,224,128,0.5);
+}
+.btn-start:hover { filter:brightness(1.2); }
+.btn-pause {
+  background:linear-gradient(180deg,#7a6010 0%,#5a4408 50%,#3a2c04 100%);
+  color:#f0d060; border:1px solid #8a7020;
+  box-shadow:0 3px 10px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.1);
+  text-shadow:0 0 8px rgba(240,208,96,0.5);
+}
+.btn-pause:hover { filter:brightness(1.2); }
+.btn-reset {
+  background:linear-gradient(180deg,#602020 0%,#401414 50%,#280c0c 100%);
+  color:#e08080; border:1px solid #702828;
+  box-shadow:0 3px 10px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.1);
+  text-shadow:0 0 8px rgba(224,128,128,0.5);
+}
+.btn-reset:hover { filter:brightness(1.2); }
+.btn-clear {
+  background:linear-gradient(180deg,#303040 0%,#202030 50%,#141420 100%);
+  color:#8088b0; border:1px solid #404058;
+  box-shadow:0 3px 10px rgba(0,0,0,0.6),inset 0 1px 1px rgba(255,255,255,0.1);
+}
+.btn-clear:hover { filter:brightness(1.2); }
+.btn:disabled { opacity:0.32; cursor:not-allowed; filter:none!important; }
+
+.sound-toggle {
+  display:flex; align-items:center; gap:0.5rem; margin-top:0.8rem; cursor:pointer;
+}
+.sound-toggle input { display:none; }
+.toggle-track {
+  width:36px; height:18px; background:#201c18; border:1px solid #403830;
+  border-radius:9px; position:relative; transition:background 0.2s;
+}
+.sound-toggle input:checked + .toggle-track { background:#3a4a2a; border-color:#506030; }
+.toggle-thumb {
+  position:absolute; top:2px; left:2px; width:12px; height:12px; border-radius:50%;
+  background:linear-gradient(135deg,#808078,#504840);
+  box-shadow:0 1px 3px rgba(0,0,0,0.6); transition:transform 0.2s;
+}
+.sound-toggle input:checked + .toggle-track .toggle-thumb {
+  transform:translateX(18px);
+  background:linear-gradient(135deg,#a0b888,#607040);
+}
+.toggle-label {
+  font-family:'Cinzel',serif; font-size:0.6rem; color:var(--silver); letter-spacing:0.15em; opacity:0.7;
+}
+
+@media(max-width:400px){
+  .controls{gap:0.35rem;}
+  .btn{padding:0.5em 0.9em;font-size:0.5rem;}
+  .ti-input{width:44px;}
+}
+</style>
+</head>
+<body>
+
+<div class="mode-tabs">
+  <button class="tab-btn active" id="tabSW">Stopwatch</button>
+  <button class="tab-btn"        id="tabTM">Timer</button>
+</div>
+
+<div class="watch-body">
+  <div class="crown-assembly">
+    <div class="crown-stem"></div>
+    <div class="crown-knob" id="crownBtn" title="Start / Pause"></div>
+  </div>
+  <div class="side-btn side-btn-left"  id="resetSideBtn" title="Reset"></div>
+  <div class="side-btn side-btn-right"></div>
+  <div class="outer-ring"></div>
+  <div class="bezel"></div>
+
+  <div class="watch-face" id="watchFace">
+    <svg class="tick-canvas" id="tickSvg"    viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"></svg>
+    <svg id="countdownArc"                   viewBox="0 0 400 400" xmlns="http://www.w3.org/2000/svg"></svg>
+
+    <div class="brand-text">
+      <span class="brand-name">TEMPUS</span>
+      <span class="brand-sub">Swiss Made</span>
+    </div>
+    <div class="mode-badge" id="modeBadge">Chronographe</div>
+
+    <div class="time-display-wrap">
+      <div class="time-display" id="timeDisplay">
+        <span id="hh">00</span>:<span id="mm">00</span>:<span id="ss">00</span><span class="time-ms">.<span id="csEl">00</span></span>
+      </div>
+      <div class="status-dot" id="statusDot"></div>
+    </div>
+
+    <div class="sweep-hand-wrap">
+      <div class="sweep-hand" id="sweepHand"></div>
+    </div>
+    <div class="center-cap"></div>
+
+    <div class="sub-dial">
+      <div class="sub-seconds-hand" id="subHand"></div>
+      <div class="sub-dial-center"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Timer input panel -->
+<div class="timer-set-panel" id="timerPanel">
+  <span class="timer-set-label">Set Countdown</span>
+  <div class="timer-inputs">
+    <div class="ti-field">
+      <span class="ti-label">HH</span>
+      <input class="ti-input" id="tiHH" type="number" min="0" max="99" value="0">
+    </div>
+    <span class="ti-sep">:</span>
+    <div class="ti-field">
+      <span class="ti-label">MM</span>
+      <input class="ti-input" id="tiMM" type="number" min="0" max="59" value="5">
+    </div>
+    <span class="ti-sep">:</span>
+    <div class="ti-field">
+      <span class="ti-label">SS</span>
+      <input class="ti-input" id="tiSS" type="number" min="0" max="59" value="0">
+    </div>
+  </div>
+  <button class="btn-set-timer" id="btnSet">Set Timer</button>
+</div>
+
+<div class="controls">
+  <button class="btn btn-start" id="btnStart">Start</button>
+  <button class="btn btn-pause" id="btnPause" disabled>Pause</button>
+  <button class="btn btn-reset" id="btnReset" disabled>Reset</button>
+  <button class="btn btn-clear" id="btnClear">Clear All</button>
+</div>
+
+<label class="sound-toggle">
+  <input type="checkbox" id="soundCk">
+  <div class="toggle-track"><div class="toggle-thumb"></div></div>
+  <span class="toggle-label">Tick Sound</span>
+</label>
+
+<script>
+(() => {
+  /* ── STORAGE ── */
+  const K = { MODE:'sw_mode', START:'sw_start', EL:'sw_el', STATE:'sw_state', TOT:'tm_total' };
+
+  /* ── STATE ── */
+  let mode='sw', startTime=null, elapsedMs=0, timerState='idle', tmTotal=0;
+  let rafId=null, actx=null, lastSec=-1, soundOn=false;
+
+  /* ── ELEMENTS ── */
+  const $ = id => document.getElementById(id);
+  const elHH=$('hh'), elMM=$('mm'), elSS=$('ss'), elCS=$('csEl');
+  const dot=$('statusDot'), sweep=$('sweepHand'), subH=$('subHand');
+  const face=$('watchFace'), badge=$('modeBadge'), disp=$('timeDisplay');
+  const arcSvg=$('countdownArc');
+  const tabSW=$('tabSW'), tabTM=$('tabTM'), panel=$('timerPanel');
+  const tiHH=$('tiHH'), tiMM=$('tiMM'), tiSS=$('tiSS'), btnSet=$('btnSet');
+  const btnStart=$('btnStart'), btnPause=$('btnPause'), btnReset=$('btnReset'), btnClear=$('btnClear');
+  const crownBtn=$('crownBtn'), resetSide=$('resetSideBtn'), soundCk=$('soundCk');
+
+  /* ── TICKS ── */
+  function buildTicks() {
+    const svg=$('tickSvg'), cx=200, cy=200, r=175;
+    for (let i=0;i<60;i++) {
+      const a=(i/60)*2*Math.PI-Math.PI/2, maj=i%5===0;
+      const len=maj?18:9, w=maj?2:1, col=maj?'#c9a84c':'#706050';
+      const x1=cx+(r-2)*Math.cos(a), y1=cy+(r-2)*Math.sin(a);
+      const x2=cx+(r-2-len)*Math.cos(a), y2=cy+(r-2-len)*Math.sin(a);
+      const l=document.createElementNS('http://www.w3.org/2000/svg','line');
+      l.setAttribute('x1',x1);l.setAttribute('y1',y1);l.setAttribute('x2',x2);l.setAttribute('y2',y2);
+      l.setAttribute('stroke',col);l.setAttribute('stroke-width',w);l.setAttribute('opacity',maj?'1':'0.6');
+      svg.appendChild(l);
+      if(i%15===0){
+        const num=['60','15','30','45'][i/15], nr=r-34;
+        const tx=cx+nr*Math.cos(a), ty=cy+nr*Math.sin(a);
+        const t=document.createElementNS('http://www.w3.org/2000/svg','text');
+        t.setAttribute('x',tx);t.setAttribute('y',ty);
+        t.setAttribute('text-anchor','middle');t.setAttribute('dominant-baseline','central');
+        t.setAttribute('fill','#c9a84c');t.setAttribute('font-size','16');
+        t.setAttribute('font-family','Cinzel,serif');t.setAttribute('opacity','0.7');
+        t.textContent=num; svg.appendChild(t);
+      }
+    }
+  }
+
+  /* ── ARC ── */
+  let arcEl=null;
+  const C = 2*Math.PI*158;
+  function initArc() {
+    arcSvg.innerHTML=''; arcEl=null;
+    if(mode!=='tm'){ arcSvg.style.opacity='0'; return; }
+    arcSvg.style.opacity='1';
+    const bg=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    bg.setAttribute('cx','200');bg.setAttribute('cy','200');bg.setAttribute('r','158');
+    bg.setAttribute('fill','none');bg.setAttribute('stroke','rgba(201,168,76,0.12)');bg.setAttribute('stroke-width','5');
+    arcSvg.appendChild(bg);
+    const p=document.createElementNS('http://www.w3.org/2000/svg','circle');
+    p.setAttribute('cx','200');p.setAttribute('cy','200');p.setAttribute('r','158');
+    p.setAttribute('fill','none');p.setAttribute('stroke','rgba(201,168,76,0.7)');
+    p.setAttribute('stroke-width','5');p.setAttribute('stroke-linecap','round');
+    p.setAttribute('stroke-dasharray',C);p.setAttribute('stroke-dashoffset','0');
+    p.setAttribute('transform','rotate(-90 200 200)');
+    arcSvg.appendChild(p); arcEl=p;
+  }
+  function updateArc(rem) {
+    if(!arcEl||tmTotal<=0) return;
+    const frac=Math.max(0,rem/tmTotal);
+    arcEl.setAttribute('stroke-dashoffset', C*(1-frac));
+    arcEl.setAttribute('stroke', rem<11000&&rem>0 ? 'rgba(220,80,60,0.85)' : 'rgba(201,168,76,0.7)');
+  }
+
+  /* ── AUDIO ── */
+  function initAudio(){ if(!actx) actx=new(window.AudioContext||window.webkitAudioContext)(); }
+  function beep(freq,dur,vol=0.1){
+    if(!actx) return;
+    const o=actx.createOscillator(), g=actx.createGain();
+    o.connect(g); g.connect(actx.destination);
+    o.frequency.value=freq;
+    g.gain.setValueAtTime(vol, actx.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001, actx.currentTime+dur);
+    o.start(); o.stop(actx.currentTime+dur);
+  }
+  function playTick(){ if(soundOn&&actx) beep(1200,0.04,0.07); }
+  function playAlarm(){
+    if(!actx) return;
+    const t=actx.currentTime;
+    [0,0.28,0.56,0.84,1.12,1.4].forEach((d,i)=>{
+      const o=actx.createOscillator(), g=actx.createGain();
+      o.connect(g); g.connect(actx.destination);
+      o.frequency.value=i%2===0?900:660;
+      g.gain.setValueAtTime(0.18,t+d);
+      g.gain.exponentialRampToValueAtTime(0.001,t+d+0.22);
+      o.start(t+d); o.stop(t+d+0.22);
+    });
+  }
+
+  /* ── RENDER ── */
+  function pad(n){ return String(Math.floor(n)).padStart(2,'0'); }
+  function render(ms) {
+    const d=Math.max(0,ms);
+    const ts=Math.floor(d/1000);
+    const hh=Math.floor(ts/3600), mm=Math.floor((ts%3600)/60), ss=ts%60, cs=Math.floor((d%1000)/10);
+    elHH.textContent=pad(hh); elMM.textContent=pad(mm);
+    elSS.textContent=pad(ss); elCS.textContent=pad(cs);
+    sweep.style.transform=`translateX(-50%) rotate(${((d%60000)/60000)*360}deg)`;
+    subH.style.transform=`translateX(-50%) rotate(${((d%3600000)/3600000)*360}deg)`;
+    if(mode==='tm') updateArc(d);
+    disp.classList.toggle('low', mode==='tm'&&d<11000&&d>0&&timerState==='running');
+    if(ss!==lastSec){ playTick(); lastSec=ss; }
+  }
+
+  /* ── LOOP ── */
+  function loop() {
+    const spent=elapsedMs+(Date.now()-startTime);
+    if(mode==='sw'){
+      render(spent); rafId=requestAnimationFrame(loop);
+    } else {
+      const rem=tmTotal-spent;
+      if(rem<=0){ render(0); triggerAlarm(); }
+      else { render(rem); rafId=requestAnimationFrame(loop); }
+    }
+  }
+
+  /* ── ALARM ── */
+  function triggerAlarm() {
+    cancelAnimationFrame(rafId);
+    timerState='done'; elapsedMs=tmTotal; startTime=null;
+    save(); applyUI();
+    initAudio(); playAlarm();
+    face.classList.add('alarm-flash');
+    setTimeout(()=>face.classList.remove('alarm-flash'),5500);
+  }
+
+  /* ── PERSIST ── */
+  function save() {
+    localStorage.setItem(K.MODE,  mode);
+    localStorage.setItem(K.START, startTime??'');
+    localStorage.setItem(K.EL,    elapsedMs);
+    localStorage.setItem(K.STATE, timerState);
+    localStorage.setItem(K.TOT,   tmTotal);
+  }
+
+  /* ── UI ── */
+  function applyUI() {
+    const done=timerState==='done';
+    btnStart.disabled=timerState==='running'||done||(mode==='tm'&&tmTotal===0);
+    btnPause.disabled=timerState!=='running';
+    btnReset.disabled=timerState==='idle';
+    btnStart.textContent=timerState==='paused'?'Resume':'Start';
+    dot.className='status-dot'+(timerState==='running'?' running':timerState==='paused'?' paused':done?' alarm':'');
+    tabSW.classList.toggle('active',mode==='sw');
+    tabTM.classList.toggle('active',mode==='tm');
+    panel.classList.toggle('visible',mode==='tm'&&(timerState==='idle'));
+    badge.textContent=mode==='sw'?'Chronographe':'Minuterie';
+    if(timerState!=='done') face.classList.remove('alarm-flash');
+  }
+
+  /* ── MODE SWITCH ── */
+  function switchMode(m) {
+    if(timerState==='running'||timerState==='paused') doReset();
+    mode=m; tmTotal=0; initArc(); render(0); save(); applyUI();
+  }
+
+  /* ── ACTIONS ── */
+  function doStart() {
+    if(timerState==='running') return;
+    if(mode==='tm'&&tmTotal===0) return;
+    initAudio(); startTime=Date.now(); timerState='running';
+    face.classList.remove('alarm-flash'); save(); applyUI();
+    rafId=requestAnimationFrame(loop);
+  }
+  function doPause() {
+    if(timerState!=='running') return;
+    cancelAnimationFrame(rafId);
+    elapsedMs+=Date.now()-startTime; startTime=null; timerState='paused';
+    render(mode==='sw'?elapsedMs:Math.max(0,tmTotal-elapsedMs));
+    save(); applyUI();
+  }
+  function doReset() {
+    cancelAnimationFrame(rafId);
+    face.classList.remove('alarm-flash');
+    elapsedMs=0; startTime=null; timerState='idle';
+    render(mode==='tm'?tmTotal:0);
+    if(mode==='tm') updateArc(tmTotal);
+    save(); applyUI();
+  }
+  function doClear() {
+    cancelAnimationFrame(rafId);
+    face.classList.remove('alarm-flash');
+    elapsedMs=0; startTime=null; timerState='idle'; tmTotal=0;
+    tiHH.value=0; tiMM.value=5; tiSS.value=0;
+    Object.values(K).forEach(k=>localStorage.removeItem(k));
+    initArc(); render(0); applyUI();
+  }
+  function doSetTimer() {
+    const h=parseInt(tiHH.value)||0, m=parseInt(tiMM.value)||0, s=parseInt(tiSS.value)||0;
+    const tot=(h*3600+m*60+s)*1000;
+    if(tot<=0) return;
+    cancelAnimationFrame(rafId);
+    tmTotal=tot; elapsedMs=0; startTime=null; timerState='idle';
+    render(tmTotal); updateArc(tmTotal); save(); applyUI();
+  }
+
+  /* ── EVENTS ── */
+  tabSW.addEventListener('click',()=>switchMode('sw'));
+  tabTM.addEventListener('click',()=>switchMode('tm'));
+  btnSet.addEventListener('click',doSetTimer);
+  crownBtn.addEventListener('click',()=>timerState==='running'?doPause():doStart());
+  resetSide.addEventListener('click',doReset);
+  btnStart.addEventListener('click',doStart);
+  btnPause.addEventListener('click',doPause);
+  btnReset.addEventListener('click',doReset);
+  btnClear.addEventListener('click',doClear);
+  soundCk.addEventListener('change',()=>{ soundOn=soundCk.checked; if(soundOn) initAudio(); });
+  [tiHH,tiMM,tiSS].forEach((el,i)=>{
+    el.addEventListener('change',()=>{ el.value=Math.max(0,Math.min(i===0?99:59,parseInt(el.value)||0)); });
+    el.addEventListener('keydown',e=>{ if(e.key==='Enter') doSetTimer(); });
+  });
+
+  /* ── RESTORE ── */
+  function restore() {
+    const saved={
+      mode:  localStorage.getItem(K.MODE)  ||'sw',
+      state: localStorage.getItem(K.STATE) ||'idle',
+      el:    parseInt(localStorage.getItem(K.EL)   ||'0',10),
+      t0:    parseInt(localStorage.getItem(K.START)||'0',10),
+      tot:   parseInt(localStorage.getItem(K.TOT)  ||'0',10)
+    };
+    mode=saved.mode; elapsedMs=saved.el; timerState=saved.state; tmTotal=saved.tot;
+    if(mode==='tm'&&tmTotal>0){
+      const ts=Math.floor(tmTotal/1000);
+      tiHH.value=Math.floor(ts/3600); tiMM.value=Math.floor((ts%3600)/60); tiSS.value=ts%60;
+    }
+    initArc();
+    if(timerState==='running'&&saved.t0){
+      startTime=saved.t0;
+      if(mode==='tm'){
+        const spent=elapsedMs+(Date.now()-startTime);
+        if(spent>=tmTotal){ render(0); triggerAlarm(); return; }
+      }
+      rafId=requestAnimationFrame(loop);
+    } else if(timerState==='paused'){
+      const d=mode==='tm'?Math.max(0,tmTotal-elapsedMs):elapsedMs;
+      render(d); if(mode==='tm') updateArc(d);
+    } else if(timerState==='done'){
+      render(0); dot.className='status-dot alarm';
+    } else {
+      render(mode==='tm'?tmTotal:0);
+      if(mode==='tm') updateArc(tmTotal);
+    }
+    applyUI();
+  }
+
+  buildTicks();
+  restore();
+})();
+</script>
+</body>
+</html>
